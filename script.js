@@ -806,7 +806,7 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => { 
                 localStorage.removeItem('urjii_token'); 
                 localStorage.removeItem('urjii_user'); 
-                window.location.href = 'home.html'; 
+                window.location.href = 'index.html'; 
             }, 1000);
         });
     }
@@ -849,7 +849,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const user = JSON.parse(localStorage.getItem('urjii_user'));
         if (!user || user.role !== 'admin') {
             showCustomAlert("Access Denied. Admin privileges required.", "error", () => {
-               window.location.href = "home.html";
+               window.location.href = "index.html";
             });
         } else {
             const loadAdminData = async () => {
