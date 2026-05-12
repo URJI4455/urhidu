@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Portal | URHIDU</title>
+
+    <!-- PWA Manifest & Theme Color -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#121212">
+    <link rel="apple-touch-icon" href="logo.png">
+
+    <!-- SEO Meta Tags (Private Page) -->
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="author" content="URHIDU Company">
+    
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- External CSS -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Specific Admin Portal Layout Styles -->
+    <style>
+        body { margin: 0; display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; }
+        
+        /* Layout Wrapper */
+        .admin-wrapper { display: flex; flex: 1; margin-top: 85px; overflow: hidden; background: var(--bg-secondary); }
+        
+        /* Sidebar */
+        .admin-sidebar { width: 260px; background-color: var(--bg-main); border-right: 1px solid var(--border-color); padding: 25px 0; overflow-y: auto; flex-shrink: 0; transition: var(--transition); z-index: 99; }
+        .admin-nav { list-style: none; padding: 0; margin: 0; }
+        .admin-nav li a { display: flex; align-items: center; gap: 15px; padding: 15px 25px; color: var(--text-muted); font-weight: 500; border-left: 4px solid transparent; cursor: pointer; transition: 0.3s; text-decoration: none; }
+        .admin-nav li a:hover, .admin-nav li a.active { background-color: rgba(201, 160, 99, 0.05); border-left-color: var(--primary-color); color: var(--primary-color); }
+        .admin-nav li a i { width: 20px; text-align: center; font-size: 1.1rem; }
+
+        /* Main Content Area */
+        .admin-main { flex: 1; padding: 40px; overflow-y: auto; }
+        .admin-tab-pane { display: none; animation: fadeIn 0.4s ease-out; }
+        .admin-tab-pane.active { display: block; }
+
+        /* Stats Grid */
+        .admin-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 25px; margin-bottom: 40px; }
+        .stat-box { background: var(--bg-card); padding: 25px; border-radius: 12px; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 20px; box-shadow: var(--shadow-light); transition: var(--transition); }
+        .stat-box:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); border-color: var(--primary-color); }
+        .stat-icon { width: 65px; height: 65px; border-radius: 12px; background: rgba(201, 160, 99, 0.1); color: var(--primary-color); display: flex; align-items: center; justify-content: center; font-size: 2rem; }
+        .stat-info h4 { font-family: var(--font-body); font-size: 0.9rem; color: var(--text-muted); margin-bottom: 5px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-info h2 { font-size: 2rem; color: var(--text-main); margin: 0; }
+
+        /* Data Tables */
+        .table-container { background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color); overflow-x: auto; box-shadow: var(--shadow-light); padding: 5px; }
+        .admin-table { width: 100%; border-collapse: collapse; min-width: 900px; text-align: left; }
+        .admin-table th, .admin-table td { padding: 18px 25px; border-bottom: 1px solid var(--border-color); font-size: 0.95rem; color: var(--text-main); }
+        .admin-table th { background: rgba(201, 160, 99, 0.05); color: var(--primary-color); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; }
+        .admin-table tr:last-child td { border-bottom: none; }
+        .admin-table tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+        /* Status Badges & Actions */
+        .status-badge { padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; display: inline-block; letter-spacing: 0.5px; }
+        .status-pending { background: rgba(243, 156, 18, 0.1); color: #f39c12; border: 1px solid rgba(243, 156, 18, 0.3); }
+        .status-progress { background: rgba(52, 152, 219, 0.1); color: #3498db; border: 1px solid rgba(52, 152, 219, 0.3); }
+        .status-completed { background: rgba(46, 204, 113, 0.1); color: #2ecc71; border: 1px solid rgba(46, 204, 113, 0.3); }
+        
+        .action-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); width: 35px; height: 35px; border-radius: 6px; cursor: pointer; transition: 0.2s; display: inline-flex; justify-content: center; align-items: center; margin-right: 8px; }
+        .action-btn:hover { transform: translateY(-2px); }
+        .btn-view { color: #3498db; } .btn-view:hover { background: #3498db; color: #fff; border-color: #3498db; }
+        .btn-edit { color: #f1c40f; } .btn-edit:hover { background: #f1c40f; color: #000; border-color: #f1c40f; }
+        .btn-delete { color: #e74c3c; } .btn-delete:hover { background: #e74c3c; color: #fff; border-color: #e74c3c; }
+
+        /* Header Controls */
+        .admin-header-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .search-bar { position: relative; width: 350px; }
+        .search-bar input { width: 100%; padding: 12px 15px 12px 45px; border: 1px solid var(--border-color); border-radius: 30px; background: var(--bg-main); color: var(--text-main); outline: none; transition: 0.3s; }
+        .search-bar input:focus { border-color: var(--primary-color); box-shadow: 0 0 10px rgba(201,160,99,0.1); }
+        .search-bar i { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+
+        /* Modals */
+        .admin-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(5px); animation: fadeIn 0.3s ease; }
+        .admin-modal { background: var(--bg-card); padding: 40px; border-radius: 12px; width: 90%; max-width: 650px; max-height: 90vh; overflow-y: auto; border: 1px solid var(--border-color); position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .close-modal { position: absolute; top: 20px; right: 25px; font-size: 1.8rem; background: none; border: none; color: var(--text-muted); cursor: pointer; transition: 0.3s; }
+        .close-modal:hover { color: var(--danger-color); transform: rotate(90deg); }
+
+        @media (max-width: 992px) {
+            .admin-sidebar { position: fixed; left: -260px; height: calc(100vh - 85px); box-shadow: 5px 0 20px rgba(0,0,0,0.5); }
+            .admin-sidebar.open { left: 0; }
+            .admin-header-controls { flex-direction: column; gap: 20px; align-items: flex-start; }
+            .search-bar { width: 100%; }
+            .admin-main { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ADMIN HEADER -->
+    <header>
+        <div class="container nav-container" style="max-width: 100%; padding: 0 30px;">
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <i class="fa-solid fa-bars hamburger" id="adminSidebarToggle" style="display: block; font-size: 1.5rem; cursor: pointer; color: var(--text-main);"></i>
+                <a href="index.html" class="logo-container">
+                    <img src="logo.png" alt="Urjii Logo" class="logo-img" onerror="this.src='https://via.placeholder.com/150/C9A063/000000?text=U'">
+                    <div class="logo-text"><span class="text-gold">Admin</span><span class="text-black">Portal</span></div>
+                </a>
+            </div>
+            
+            <ul class="nav-links" style="display: flex; gap: 20px; align-items: center;">
+                <li class="notification-item">
+                    <button class="icon-btn" id="notificationBtn" aria-label="Notifications" style="position: relative;">
+                        <i class="fa-solid fa-bell"></i>
+                        <span class="notify-badge" id="notifyCount" style="display: none;">0</span>
+                    </button>
+                    <div class="notification-dropdown" id="notificationDropdown">
+                        <div class="notify-header">Admin Alerts</div>
+                        <div class="notify-body" id="notifyBody"></div>
+                    </div>
+                </li>
+                <li>
+                    <button class="btn btn-outline" id="adminLogoutBtn" style="padding: 8px 20px; font-size: 0.95rem; color: var(--danger-color); border-color: var(--danger-color); border-radius: 30px;">Logout <i class="fa-solid fa-right-from-bracket" style="margin-left: 5px;"></i></button>
+                </li>
+            </ul>
+            <div class="nav-actions"><button class="theme-toggle"><i class="fa-solid fa-moon"></i></button></div>
+        </div>
+    </header>
+
+    <div class="admin-wrapper">
+        <!-- SIDEBAR -->
+        <aside class="admin-sidebar" id="adminSidebar">
+            <ul class="admin-nav">
+                <li><a data-target="tab-dashboard" class="active"><i class="fa-solid fa-chart-pie"></i> Analytics Overview</a></li>
+                <li><a data-target="tab-orders"><i class="fa-solid fa-file-invoice-dollar"></i> Order Management</a></li>
+                <li><a data-target="tab-users"><i class="fa-solid fa-users"></i> Registered Users</a></li>
+                <li><a data-target="tab-affiliates"><i class="fa-solid fa-handshake"></i> Affiliate Program</a></li>
+                <li><a data-target="tab-content"><i class="fa-solid fa-pen-to-square"></i> Blogs & News</a></li>
+                <li><a data-target="tab-messages"><i class="fa-solid fa-envelope"></i> Contact Messages</a></li>
+                <li><a data-target="tab-settings"><i class="fa-solid fa-gear"></i> System Settings</a></li>
+            </ul>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="admin-main">
+            
+            <!-- ================= DASHBOARD TAB ================= -->
+            <div id="tab-dashboard" class="admin-tab-pane active">
+                <div class="admin-header-controls">
+                    <h2 style="margin: 0; color: var(--text-main); font-size: 2rem;">Dashboard Overview</h2>
+                    <span style="color: var(--text-muted); font-size: 0.9rem;"><i class="fa-regular fa-clock"></i> Live Updates Active</span>
+                </div>
+                
+                <div class="admin-stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
+                        <div class="stat-info"><h4>Total Users</h4><h2 id="statUsers">0</h2></div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-icon"><i class="fa-solid fa-box-open"></i></div>
+                        <div class="stat-info"><h4>Pending Orders</h4><h2 id="statOrders">0</h2></div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-icon"><i class="fa-solid fa-money-bill-trend-up"></i></div>
+                        <div class="stat-info"><h4>Total Revenue</h4><h2 id="statRevenue" style="color: var(--success-color);">0 ETB</h2></div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-icon"><i class="fa-solid fa-handshake-angle"></i></div>
+                        <div class="stat-info"><h4>Active Affiliates</h4><h2 id="statAffiliates">0</h2></div>
+                    </div>
+                </div>
+
+                <h3 style="margin-bottom: 20px; font-size: 1.4rem;">Recent Platform Activity</h3>
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr><th>Date</th><th>Activity Type</th><th>Details</th><th>Status</th></tr>
+                        </thead>
+                        <tbody id="recentActivityBody">
+                            <tr><td colspan="4" style="text-align:center; padding: 30px; color: var(--text-muted);">Fetching activity data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ================= ORDERS TAB ================= -->
+            <div id="tab-orders" class="admin-tab-pane">
+                <div class="admin-header-controls">
+                    <h2 style="color: var(--text-main); margin:0; font-size: 2rem;">Order Management</h2>
+                    <div class="search-bar">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="searchOrders" placeholder="Search orders by ID, Client, Service...">
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="admin-table" id="ordersTable">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Client Name</th>
+                                <th>Service</th>
+                                <th>Budget Range</th>
+                                <th>Launch Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody">
+                            <tr><td colspan="7" style="text-align:center; padding: 30px; color: var(--text-muted);">Loading orders database...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ================= USERS TAB ================= -->
+            <div id="tab-users" class="admin-tab-pane">
+                <div class="admin-header-controls">
+                    <h2 style="color: var(--text-main); margin:0; font-size: 2rem;">Registered Users</h2>
+                    <div class="search-bar">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="searchUsers" placeholder="Search users by Name, Email, Country...">
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="admin-table" id="usersTable">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Country</th>
+                                <th>Joined Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <tr><td colspan="6" style="text-align:center; padding: 30px; color: var(--text-muted);">Loading user records...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ================= AFFILIATES TAB ================= -->
+            <div id="tab-affiliates" class="admin-tab-pane">
+                <div class="admin-header-controls">
+                    <h2 style="color: var(--text-main); margin:0; font-size: 2rem;">Affiliate Network</h2>
+                    <div class="search-bar">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="searchAffiliates" placeholder="Search affiliate name or REF code...">
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="admin-table" id="affiliatesTable">
+                        <thead>
+                            <tr>
+                                <th>Affiliate Name</th>
+                                <th>Referral Code</th>
+                                <th>Total Clicks</th>
+                                <th>Conversions</th>
+                                <th>Total Payout (ETB)</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="affiliatesTableBody">
+                            <tr><td colspan="6" style="text-align:center; padding: 30px; color: var(--text-muted);">Loading affiliate data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ================= BLOGS & NEWS TAB ================= -->
+            <div id="tab-content" class="admin-tab-pane">
+                <div class="admin-header-controls">
+                    <h2 style="color: var(--text-main); margin:0; font-size: 2rem;">Content Management</h2>
+                    <button class="btn pulse-btn" onclick="openModal('blogModal')" style="border-radius: 30px;"><i class="fa-solid fa-plus" style="margin-right: 8px;"></i> Create New Post</button>
+                </div>
+
+                <div class="table-container">
+                    <table class="admin-table" id="blogsTable">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Category</th>
+                                <th>Published Date</th>
+                                <th>Views</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="blogsTableBody">
+                            <tr><td colspan="5" style="text-align:center; padding: 30px; color: var(--text-muted);">Loading published content...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+             <!-- ================= MESSAGES TAB ================= -->
+             <div id="tab-messages" class="admin-tab-pane">
+                <div class="admin-header-controls">
+                    <h2 style="color: var(--text-main); margin:0; font-size: 2rem;">Inquiries & Messages</h2>
+                </div>
+
+                <div class="table-container">
+                    <table class="admin-table" id="messagesTable">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Sender Name</th>
+                                <th>Email</th>
+                                <th>Subject</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="messagesTableBody">
+                            <tr><td colspan="6" style="text-align:center; padding: 30px; color: var(--text-muted);">Loading secure inbox...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ================= SETTINGS TAB ================= -->
+             <div id="tab-settings" class="admin-tab-pane">
+                <div class="admin-header-controls">
+                    <h2 style="color: var(--text-main); margin:0; font-size: 2rem;">System Settings</h2>
+                </div>
+                <div class="card" style="max-width: 700px; padding: 40px; border-radius: 12px;">
+                    <form id="adminSettingsForm">
+                        <h4 style="margin-bottom: 25px; color: var(--primary-color); border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">Global Configurations</h4>
+                        
+                        <div class="form-group">
+                            <label>Admin Notification Email</label>
+                            <input type="email" id="adminNotifyEmail" class="form-control" value="admin@urjiisoftware.com" required>
+                            <p style="font-size: 0.85rem; color:var(--text-muted); margin-top: 5px;">This email receives instant notifications when a user orders a service or sends a message.</p>
+                        </div>
+                        
+                        <div class="form-group" style="margin-top: 30px;">
+                            <label>Default Affiliate Commission Rate (%)</label>
+                            <input type="number" id="adminCommRate" class="form-control" value="30" max="100" min="0" required>
+                            <p style="font-size: 0.85rem; color:var(--text-muted); margin-top: 5px;">Calculated automatically when an admin inputs the Final Price upon order completion.</p>
+                        </div>
+                        
+                        <button type="submit" class="btn w-100" style="margin-top: 20px; padding: 14px;">Save System Settings <i class="fa-solid fa-floppy-disk" style="margin-left: 8px;"></i></button>
+                    </form>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ================= MODALS ================= -->
+    
+    <!-- Order Details Modal -->
+    <div class="admin-modal-overlay" id="orderModal">
+        <div class="admin-modal">
+            <button class="close-modal" onclick="closeModal('orderModal')">&times;</button>
+            <h3 style="color: var(--primary-color); border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 25px; font-size: 1.6rem;">Process Order</h3>
+            
+            <div id="orderDetailsContent" style="font-size: 0.95rem; line-height: 1.9; color: var(--text-main);">
+                <!-- JS dynamically injects detailed order view here -->
+            </div>
+            
+            <div style="margin-top: 30px; background: rgba(201,160,99,0.05); padding: 25px; border-radius: 8px; border: 1px solid var(--border-color);">
+                <label style="display:block; margin-bottom: 10px; font-weight: 600; color: var(--text-main);">Update Project Status:</label>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <select id="updateOrderStatus" class="form-control" style="flex: 1; min-width: 200px;">
+                        <option value="Pending">Pending Review</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Completed">Completed (Finalize)</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                    
+                    <!-- Only shows via JS when 'Completed' is selected -->
+                    <input type="number" id="finalProjectPrice" class="form-control" placeholder="Final Price (ETB)" style="display: none; flex: 1; min-width: 150px;">
+                    
+                    <button class="btn" id="saveOrderStatusBtn" style="padding: 0 30px;">Save Update</button>
+                </div>
+                <p id="affiliateWarning" style="display: none; font-size: 0.85rem; color: var(--danger-color); margin-top: 10px;">* Entering the Final Price will automatically calculate and deposit 30% to the referring affiliate.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Blog Editor Modal -->
+    <div class="admin-modal-overlay" id="blogModal">
+        <div class="admin-modal" style="max-width: 850px;">
+            <button class="close-modal" onclick="closeModal('blogModal')">&times;</button>
+            <h3 style="color: var(--primary-color); border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 25px; font-size: 1.6rem;">Content Editor</h3>
+            
+            <form id="adminBlogForm">
+                <div class="form-group">
+                    <label>Article Title</label>
+                    <input type="text" id="blogTitle" class="form-control" placeholder="Enter a catchy title..." required>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Category</label>
+                        <input type="text" id="blogCategory" class="form-control" placeholder="e.g. Web Development" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Cover Image URL</label>
+                        <input type="text" id="blogImage" class="form-control" placeholder="https://images.unsplash.com/..." required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Article Content (HTML/Markdown Supported)</label>
+                    <textarea id="blogContent" class="form-control" rows="12" placeholder="Write your insightful content here..." required></textarea>
+                </div>
+                <div style="display: flex; gap: 15px; justify-content: flex-end; margin-top: 20px;">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('blogModal')" style="padding: 12px 30px;">Cancel</button>
+                    <button type="submit" class="btn" style="padding: 12px 35px;">Publish to Website <i class="fa-solid fa-upload" style="margin-left: 8px;"></i></button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    
+    
+    
+ <!-- GLOBAL FOOTER -->
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+              <div>
+                  <a href="/home" class="logo-container" style="align-items:flex-start; margin-bottom:15px;">
+                 <img src="logo.png" class="logo-img" alt="URHIDU Logo" onerror="this.src='https://via.placeholder.com/150/C9A063/000000?text=U'">
+                      <div class="logo-text"><span class="text-gold">URHIDU </span><span class="text-black" style="color:#fff;"></span></div>
+                  </a>
+                  <p style="color: #bbb;">Empowering businesses through innovative tech solutions.</p>
+              </div>
+              <div>
+                  <h4>Quick Links</h4>
+                  <ul class="footer-links">
+                      <li><a href="/about">About Us</a></li>
+                      <li><a href="/portfolio">Portfolio</a></li>
+                      <li><a href="/pricing">Pricing</a></li>
+                      <li><a href="/blog">Blogs</a></li>
+                  </ul>
+              </div>
+              <div>
+                  <h4>Legal</h4>
+                  <ul class="footer-links">
+                      <li><a href="/terms">Terms & Conditions</a></li>
+                      <li><a href="/privacy">Privacy Policy</a></li>
+                  </ul>
+              </div>
+              <div>
+                  <h4>Newsletter / Notify Me</h4>
+                  <p style="font-size: 0.85rem; margin-bottom: 10px; color: #ccc;">Subscribe to get notified about updates, blogs, and new packages.</p>
+                  <form class="newsletter-form pro-newsletter" id="newsletterForm">
+                      <input type="email" class="newsletter-input" id="newsletterEmail" placeholder="Enter your email address" required>
+                      <button type="submit" class="newsletter-btn"><i class="fa-solid fa-paper-plane"></i></button>
+                  </form>
+                  <div class="social-icons" style="margin-top: 20px;">
+                      <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+                      <a href="#"><i class="fa-brands fa-twitter"></i></a>
+                      <a href="#"><i class="fa-brands fa-linkedin-in"></i></a>
+                  </div>
+              </div>
+            </div>
+            <div class="copyright"><p>&copy; 2026 URHIDU. All Rights Reserved. Urhidu–v1.0</p></div>
+        </div>
+    </footer>
+        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <!-- UI/UX Scripts specific for Admin Layout Navigation -->
+    <script>
+        // Sidebar Toggle for Mobile Devices
+        const sidebarToggle = document.getElementById('adminSidebarToggle');
+        const sidebar = document.getElementById('adminSidebar');
+        if (sidebarToggle && sidebar) {
+            sidebarToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('open');
+            });
+        }
+
+        // Admin Tab Switching Logic
+        const tabLinks = document.querySelectorAll('.admin-nav a[data-target]');
+        const tabPanes = document.querySelectorAll('.admin-tab-pane');
+        
+        tabLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                const targetId = e.currentTarget.getAttribute('data-target');
+                
+                // Clear active states
+                tabLinks.forEach(t => t.classList.remove('active'));
+                tabPanes.forEach(p => p.classList.remove('active'));
+                
+                // Set new active states
+                e.currentTarget.classList.add('active');
+                document.getElementById(targetId).classList.add('active');
+
+                // Auto-close sidebar on mobile after selection
+                if (window.innerWidth <= 992) {
+                    sidebar.classList.remove('open');
+                }
+            });
+        });
+
+        // Global Modal Controllers
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        // Show Final Price input only when Completed is selected (for Affiliate calculation prep)
+        document.getElementById('updateOrderStatus')?.addEventListener('change', (e) => {
+            const priceInput = document.getElementById('finalProjectPrice');
+            const warning = document.getElementById('affiliateWarning');
+            if(e.target.value === 'Completed') {
+                priceInput.style.display = 'block';
+                warning.style.display = 'block';
+                priceInput.setAttribute('required', 'true');
+            } else {
+                priceInput.style.display = 'none';
+                warning.style.display = 'none';
+                priceInput.removeAttribute('required');
+            }
+        });
+    </script>
+    
+    <!-- Link to the main script.js for Data Population -->
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /profile.html
+
+Sitemap: https://urhidu.pro.et/sitemap.xml

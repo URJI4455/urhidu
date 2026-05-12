@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Login | URHIDU</title>
+
+    <!-- PWA Manifest & Theme Color -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#121212">
+    <link rel="apple-touch-icon" href="logo.png">
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Securely log in to your URHIDU client portal to track project progress, access the affiliate dashboard, and manage your orders.">
+    
+    <meta name="keywords" content="URHIDU Login, Client Portal, Affiliate Registration Ethiopia, Manage Software Orders.">
+    <meta name="author" content="Urjii Software Company">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://urhidu.pro.et/Auth">
+    
+    <meta property="og:title" content="Login Access & Registration | URHIDU">
+    
+    <meta property="og:description" content="Log in to access your personal dashboard and track your digital transformation journey with us..">
+    
+    <meta property="og:image" content="/logo.png">
+
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- External CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    
+
+   <!-- HEADER -->
+   <header>
+     <div class="container nav-container">
+        <a href="/home" class="logo-container">
+          <img src="logo.png" alt="URHIDU Logo" class="logo-img" onerror="this.src='https://via.placeholder.com/150/C9A063/000000?text=U'">
+  <div class="logo-text"><span class="text-gold">URHIDU</span><span class="text-black"></span></div>      </a>
+            
+            <ul class="nav-links">
+                <li><a href="/home">Home</a></li>
+                <li><a href="/about" style="color: var(--primary-color);">About</a></li>
+                <li><a href="/services">Services</a></li>
+                <li><a href="/contact">Contact</a></li>
+                <li><a href="/order" class="btn pulse-btn">Order Now</a></li>
+                
+                <!-- Notification Bell -->
+                <li class="notification-item">
+                    <button id="notificationBtn" class="icon-btn" aria-label="Notifications">
+                        <i class="fa-solid fa-bell"></i>
+                        <span class="notify-badge" id="notifyCount" style="display: none;">0</span>
+                    </button>
+                    <div class="notification-dropdown" id="notificationDropdown">
+                        <div class="notify-header">Notifications</div>
+                        <div class="notify-body" id="notifyBody"></div>
+                    </div>
+                </li>
+
+                <li id="authHeaderActions"></li>
+            </ul>
+            <div class="nav-actions">
+                <button class="theme-toggle"><i class="fa-solid fa-moon"></i></button>
+                <i class="fa-solid fa-bars hamburger"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT (Auth Portal) -->
+    <main style="padding-top: 140px; padding-bottom: 100px; min-height: 80vh; display: flex; justify-content: center; align-items: center;">
+        
+        <div class="form-animated-border reveal-scale" style="width: 90%; max-width: 850px;">
+            <div class="form-inner" style="padding: 50px;">
+                
+                <!-- Auth Tabs -->
+                <div id="authTabs" style="display: flex; justify-content: center; margin-bottom: 35px; gap: 15px;">
+                    <button id="showLoginBtn" class="btn" style="flex: 1; border-radius: 30px; font-size: 1.1rem; max-width: 250px;">Login</button>
+                    <button id="showRegisterBtn" class="btn btn-outline" style="flex: 1; border-radius: 30px; font-size: 1.1rem; max-width: 250px;">Register</button>
+                </div>
+
+                <!-- ================= LOGIN FORM ================= -->
+                <form id="loginForm" style="max-width: 500px; margin: 0 auto; animation: fadeIn 0.4s ease;">
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <i class="fa-solid fa-user-lock" style="font-size: 3.5rem; color: var(--primary-color); margin-bottom: 15px;"></i>
+                        <h3 style="font-size: 1.8rem; color: var(--text-main);">Welcome Back</h3>
+                        <p style="color: var(--text-muted);">Access your client portal</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email or Phone Number</label>
+                        <input type="text" id="loginIdentifier" class="form-control" placeholder="example@email.com or +251911..." style="padding: 14px;" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Password</label>
+                        <div class="password-container" style="position: relative;">
+                            <input type="password" id="loginPassword" class="form-control" placeholder="Enter your password" style="padding: 14px;" required>
+                            <i class="fa-solid fa-eye toggle-password" style="position: absolute; right: 15px; top: 18px; cursor: pointer; color: var(--text-muted); transition: 0.2s;"></i>
+                        </div>
+                    </div>
+
+                    <div style="text-align: right; margin-bottom: 25px;">
+                        <a href="#" id="forgotPasswordLink" style="font-size: 0.95rem; color: var(--primary-color); font-weight: 500;">Forgot Password?</a>
+                    </div>
+
+                    <button type="submit" class="btn w-100 pulse-btn" style="padding: 14px; font-size: 1.1rem;">Sign In <i class="fa-solid fa-arrow-right-to-bracket" style="margin-left: 8px;"></i></button>
+                </form>
+
+                <!-- ================= REGISTER FORM ================= -->
+                <form id="registerForm" style="display: none; animation: fadeIn 0.4s ease;">
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <i class="fa-solid fa-user-plus" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 15px;"></i>
+                        <h3 style="font-size: 1.8rem; color: var(--text-main);">Create an Account</h3>
+                        <p style="color: var(--text-muted);">Join to order services and become an affiliate partner.</p>
+                    </div>
+
+                    <div class="form-grid-3">
+                        <div class="form-group">
+                            <label>First Name *</label>
+                            <input type="text" id="regFirstName" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Last Name *</label>
+                            <input type="text" id="regLastName" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email Address *</label>
+                            <input type="email" id="regEmail" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Gender *</label>
+                            <select id="regGender" class="form-control" required>
+                                <option value="">-- Select Gender --</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Age *</label>
+                            <input type="number" id="regAge" class="form-control" min="16" max="100" placeholder="e.g. 25" required>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Country *</label>
+                            <!-- Injected by JS -->
+                            <select id="regCountry" class="form-control dynamic-country" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Phone Number *</label>
+                            <div class="phone-input-group" style="display: flex; gap: 10px;">
+                                <!-- Injected by JS -->
+                                <select id="regPhoneCode" class="form-control dynamic-phone-code" style="width: 35%; flex-shrink: 0;" required></select>
+                                <input type="number" id="regPhoneNum" class="form-control" style="width: 65%;" placeholder="Enter number..." required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Password *</label>
+                            <div class="password-container" style="position: relative;">
+                                <input type="password" id="regPassword" class="form-control" minlength="6" placeholder="Min 6 characters" required>
+                                <i class="fa-solid fa-eye toggle-password" style="position: absolute; right: 15px; top: 15px; cursor: pointer; color: var(--text-muted);"></i>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Confirm Password *</label>
+                            <div class="password-container" style="position: relative;">
+                                <input type="password" id="regConfirmPassword" class="form-control" placeholder="Re-type password" required>
+                                <i class="fa-solid fa-eye toggle-password" style="position: absolute; right: 15px; top: 15px; cursor: pointer; color: var(--text-muted);"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: flex-start; gap: 12px; margin-top: 15px; margin-bottom: 25px; padding: 15px; background: rgba(201,160,99,0.05); border-radius: 6px;">
+                        <input type="checkbox" id="termsAgree" required style="margin-top: 4px; width: 18px; height: 18px; accent-color: var(--primary-color); cursor: pointer;">
+                        <label for="termsAgree" style="font-size: 0.95rem; color: var(--text-muted); cursor: pointer; margin: 0;">
+                            I verify that all information is correct and I agree to the <a href="/terms" target="_blank" style="color: var(--primary-color); text-decoration: underline;">Terms & Conditions</a> and <a href="/privacy" target="_blank" style="color: var(--primary-color); text-decoration: underline;">Privacy Policy</a>.
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn w-100" style="padding: 14px; font-size: 1.1rem;">Register Account <i class="fa-solid fa-user-check" style="margin-left: 8px;"></i></button>
+                </form>
+
+                <!-- ================= FORGOT PASSWORD FORM ================= -->
+                <form id="forgotPasswordForm" style="display: none; max-width: 500px; margin: 0 auto; animation: fadeIn 0.4s ease;">
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <i class="fa-solid fa-envelope-open-text" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 15px;"></i>
+                        <h3 style="font-size: 1.8rem; color: var(--text-main);">Reset Password</h3>
+                        <p style="color: var(--text-muted);">Enter your registered email or phone to receive a secure reset token.</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email or Phone Number</label>
+                        <input type="text" id="forgotIdentifier" class="form-control" style="padding: 14px;" required>
+                    </div>
+
+                    <button type="submit" class="btn w-100" style="padding: 14px; margin-bottom: 20px;">Send Reset Token</button>
+                    
+                    <div style="text-align: center;">
+                        <a href="#" id="backToLoginLink" style="font-size: 0.95rem; color: var(--primary-color);"><i class="fa-solid fa-arrow-left"></i> Back to Login</a>
+                    </div>
+                </form>
+
+                <!-- ================= RESET PASSWORD FORM ================= -->
+                <form id="resetPasswordForm" style="display: none; max-width: 500px; margin: 0 auto; animation: fadeIn 0.4s ease;">
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <i class="fa-solid fa-key" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 15px;"></i>
+                        <h3 style="font-size: 1.8rem; color: var(--text-main);">Set New Password</h3>
+                        <p style="color: var(--text-muted);">Enter the token you received to update your security credentials.</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Reset Token</label>
+                        <input type="text" id="resetTokenInput" class="form-control" placeholder="Paste the token here..." style="padding: 14px;" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>New Password</label>
+                        <div class="password-container" style="position: relative;">
+                            <input type="password" id="newResetPassword" class="form-control" style="padding: 14px;" required>
+                            <i class="fa-solid fa-eye toggle-password" style="position: absolute; right: 15px; top: 18px; cursor: pointer; color: var(--text-muted);"></i>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn w-100" style="padding: 14px;">Securely Update Password</button>
+                </form>
+
+            </div>
+        </div>
+    </main>
+
+ <!-- GLOBAL FOOTER -->
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+              <div>
+                  <a href="/home" class="logo-container" style="align-items:flex-start; margin-bottom:15px;">
+                 <img src="logo.png" class="logo-img" alt="URHIDU Logo" onerror="this.src='https://via.placeholder.com/150/C9A063/000000?text=U'">
+                      <div class="logo-text"><span class="text-gold">URHIDU </span><span class="text-black" style="color:#fff;"></span></div>
+                  </a>
+                  <p style="color: #bbb;">Empowering businesses through innovative tech solutions.</p>
+              </div>
+              <div>
+                  <h4>Quick Links</h4>
+                  <ul class="footer-links">
+                      <li><a href="/about">About Us</a></li>
+                      <li><a href="/portfolio">Portfolio</a></li>
+                      <li><a href="/pricing">Pricing</a></li>
+                      <li><a href="/blog">Blogs</a></li>
+                  </ul>
+              </div>
+              <div>
+                  <h4>Legal</h4>
+                  <ul class="footer-links">
+                      <li><a href="/terms">Terms & Conditions</a></li>
+                      <li><a href="/privacy">Privacy Policy</a></li>
+                  </ul>
+              </div>
+              <div>
+                  <h4>Newsletter / Notify Me</h4>
+                  <p style="font-size: 0.85rem; margin-bottom: 10px; color: #ccc;">Subscribe to get notified about updates, blogs, and new packages.</p>
+                  <form class="newsletter-form pro-newsletter" id="newsletterForm">
+                      <input type="email" class="newsletter-input" id="newsletterEmail" placeholder="Enter your email address" required>
+                      <button type="submit" class="newsletter-btn"><i class="fa-solid fa-paper-plane"></i></button>
+                  </form>
+                  <div class="social-icons" style="margin-top: 20px;">
+                      <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+                      <a href="#"><i class="fa-brands fa-twitter"></i></a>
+                      <a href="#"><i class="fa-brands fa-linkedin-in"></i></a>
+                  </div>
+              </div>
+            </div>
+            <div class="copyright"><p>&copy; 2026 URHIDU. All Rights Reserved.</p></div>
+        </div>
+    </footer>
+    
+    
+    <script src="script.js"></script>
+</body>
+</html>
