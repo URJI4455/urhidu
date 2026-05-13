@@ -17,9 +17,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 👇 ADD THESE TWO LINES BACK TO SERVE YOUR HTML FILES! 👇
-app.use(express.static(__dirname, { extensions: ['html'] }));
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
 // Max 4MB for Vercel Serverless
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 4 * 1024 * 1024 } });
