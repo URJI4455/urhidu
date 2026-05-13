@@ -8,7 +8,6 @@ const multer = require('multer');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 
-// Models (Fixed: Users.js instead of User.js to match your file name)
 const User = require('./Users.js'); 
 const Order = require('./order.js');
 const Contact = require('./Contact.js');
@@ -17,10 +16,11 @@ const Review = require('./Review.js');
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(express.static(__dirname));
 
-// Multer setup (Memory Storage for Vercel, max 4MB to prevent vercel crash)
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 4 * 1024 * 1024 } }); 
+// Max 4MB for Vercel Serverless
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 4 * 1024 * 1024 } });
+
+const JWT_SECRET = process.env.JWT_SECRET;
 
 // --- SERVERLESS MONGODB CONNECTION ---
 let cached = global.mongoose;
@@ -31,6 +31,10 @@ if (!cached) {
 const connectDB = async () => {
     if (cached.conn) return cached.conn;
     
+    if (!process.env.MONGODB_URI) {
+        throw new Error("MONGODB_URI is completely missing from this Vercel deployment!");
+    }
+
     if (!cached.promise) {
         cached.promise = mongoose.connect(process.env.MONGODB_URI, {
             serverSelectionTimeoutMS: 5000
@@ -46,22 +50,18 @@ const connectDB = async () => {
     cached.conn = await cached.promise;
     return cached.conn;
 };
-// ----------------------------------------
 
-// 1. Tell Express to auto-append .html to clean URLs!
-app.use(express.static(__dirname, { extensions: ['html'] }));
-
-// 2. Only apply the Database connection to /api/ routes!
+// ONLY apply database connection to /api routes
 app.use('/api', async (req, res, next) => {
     try {
         await connectDB();
         next();
     } catch (error) {
-        console.error("DB Error middleware triggered:", error);
-        res.status(500).json({ error: "Database Connection Failed" });
+        console.error("Database middleware error:", error.message);
+        // This will send the exact error to your frontend popup so we know what is wrong!
+        return res.status(500).json({ error: `DB Error: ${error.message}` });
     }
 });
-// ----------------------------------------
 // ----------------------------------------
 
 // Nodemailer Setup
@@ -93,6 +93,10 @@ const adminAuthMiddleware = (req, res, next) => {
         next();
     });
 };
+
+// ==========================================
+// PUBLIC & USER API ROUTES BELOW...
+// (Keep all your existing app.get and app.post routes here exactly as they were)
 
 // ==========================================
 // PUBLIC & USER API ROUTES
