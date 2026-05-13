@@ -19,36 +19,45 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
 
-// Multer setup (Memory Storage for Vercel, max 10MB)
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
-
-const MONGODB_URI = process.env.MONGODB_URI;
-const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) {
-    console.error("FATAL ERROR: JWT_SECRET is not defined.");
-    process.exit(1); 
-}
+// Multer setup (Memory Storage for Vercel, max 4MB to prevent vercel crash)
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 4 * 1024 * 1024 } }); 
 
 // --- SERVERLESS MONGODB CONNECTION ---
+// Cache the connection globally so Vercel doesn't create 100+ connections
+let cached = global.mongoose;
+if (!cached) {
+    cached = global.mongoose = { conn: null, promise: null };
+}
+
 const connectDB = async () => {
-    if (mongoose.connection.readyState >= 1) {
-        return; // Already connected
-    }
-    try {
-        await mongoose.connect(process.env.MONGODB_URI, {
-            serverSelectionTimeoutMS: 5000 // Don't wait forever
+    if (cached.conn) return cached.conn;
+    
+    if (!cached.promise) {
+        cached.promise = mongoose.connect(process.env.MONGODB_URI, {
+            serverSelectionTimeoutMS: 5000 // Timeout after 5s instead of hanging
+        }).then(mongoose => {
+            console.log("✅ MongoDB Connected Successfully");
+            return mongoose;
+        }).catch(err => {
+            console.error("❌ MongoDB Connection Error:", err.message);
+            cached.promise = null;
+            throw err;
         });
-        console.log("✅ MongoDB Connected Successfully");
-    } catch (error) {
-        console.error("❌ MongoDB Connection Error:", error.message);
     }
+    cached.conn = await cached.promise;
+    return cached.conn;
 };
 
-// Force connection check on every single API request
+// Apply to all API requests
 app.use(async (req, res, next) => {
-    await connectDB();
-    next();
+    try {
+        await connectDB();
+        next();
+    } catch (error) {
+        res.status(500).json({ error: "Database Connection Failed" });
+    }
 });
+// ----------------------------------------
 // ----------------------------------------
 
 // Nodemailer Setup
