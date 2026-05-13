@@ -1,8 +1,21 @@
 {
-  "cleanUrls": true,
+  "version": 2,
+  "builds": [
+    {
+      "src": "index.js",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": ["*.html", "*.css", "script.js", "*.png", "*.jpg", "*.json"]
+      }
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",
+      "destination": "/index.js"
+    },
+    {
+      "source": "/(.*)",
       "destination": "/index.js"
     }
   ]
