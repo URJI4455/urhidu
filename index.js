@@ -23,7 +23,6 @@ app.use(express.static(__dirname));
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 4 * 1024 * 1024 } }); 
 
 // --- SERVERLESS MONGODB CONNECTION ---
-// Cache the connection globally so Vercel doesn't create 100+ connections
 let cached = global.mongoose;
 if (!cached) {
     cached = global.mongoose = { conn: null, promise: null };
@@ -34,7 +33,7 @@ const connectDB = async () => {
     
     if (!cached.promise) {
         cached.promise = mongoose.connect(process.env.MONGODB_URI, {
-            serverSelectionTimeoutMS: 5000 // Timeout after 5s instead of hanging
+            serverSelectionTimeoutMS: 5000
         }).then(mongoose => {
             console.log("✅ MongoDB Connected Successfully");
             return mongoose;
@@ -47,13 +46,18 @@ const connectDB = async () => {
     cached.conn = await cached.promise;
     return cached.conn;
 };
+// ----------------------------------------
 
-// Apply to all API requests
-app.use(async (req, res, next) => {
+// 1. Tell Express to auto-append .html to clean URLs!
+app.use(express.static(__dirname, { extensions: ['html'] }));
+
+// 2. Only apply the Database connection to /api/ routes!
+app.use('/api', async (req, res, next) => {
     try {
         await connectDB();
         next();
     } catch (error) {
+        console.error("DB Error middleware triggered:", error);
         res.status(500).json({ error: "Database Connection Failed" });
     }
 });
